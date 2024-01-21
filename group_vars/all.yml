@@ -1,0 +1,18 @@
+vm_root_password: 'password'
+virtual_machines:
+  - {
+      name: 'cnx-ds',
+      cpu: '2',
+      mem: '8',
+      hdd1: '50',
+      hdd2: '100',
+      ip: '10.0.22.3',
+    }
+  - {
+      name: 'cnx-ns',
+      cpu: '2',
+      mem: '8',
+      hdd1: '50',
+      hdd2: '100',
+      ip: '10.0.22.2',
+    }

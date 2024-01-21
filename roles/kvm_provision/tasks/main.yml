@@ -1,0 +1,57 @@
+---
+# tasks file for roles/kvm_provision
+- name: Get VMs list
+  community.libvirt.virt:
+    command: list_vms
+  register: existing_vms
+  changed_when: false
+
+- name: Download image checksum
+  ansible.builtin.get_url:
+    url: '{{ __base_image_url }}/{{ __base_image_name }}.CHECKSUM'
+    dest: '/tmp/{{ __base_image_name }}.CHECKSUM'
+
+- name: Download base image
+  ansible.builtin.get_url:
+    url: '{{ __base_image_url }}/{{ __base_image_name }}'
+    dest: '/tmp/{{ __base_image_name }}'
+    checksum: '{{ checksum }}'
+  vars:
+    checksum: "{{ 'sha256:' + lookup('file', '/tmp/{{ __base_image_name }}.CHECKSUM').split(\"\n\")[1].split(\"=\")[1] }}"
+
+- name: Copy base image to libvirt directory
+  copy:
+    dest: '{{ __libvirt_pool_dir }}/{{ item.name }}.qcow2'
+    src: '/tmp/{{ __base_image_name }}'
+    force: no
+    remote_src: yes
+    mode: 0660
+  become: true
+  with_items:
+    - '{{ __virtual_machines }}'
+  register: copy_results
+
+- name: Define Libvirt image
+  community.libvirt.virt:
+    command: define
+
+- name: Configure the image
+  command: |
+    virt-customize -a {{ __libvirt_pool_dir }}/{{ item.name }}.qcow2 \
+    --hostname {{ item.name }}.{{ _vm_domain }} \
+    --root-password password:{{ __vm_root_password }} \
+    --ssh-inject 'root:file:{{ ssh_key }}' \
+    --uninstall cloud-init --selinux-relabel
+  become: true
+  with_items:
+    - '{{ __virtual_machines }}'
+  when: copy_results is changed
+
+- name: Define vm
+  community.libvirt.virt:
+    command: define
+    xml: "{{ lookup('template', 'vm-template.xml.j2') }}"
+  become: true
+  with_items:
+    - '{{ __virtual_machines }}'
+  when: 'item.name not in existing_vms.list_vms'
