@@ -1,9 +1,10 @@
 ---
 # defaults file for roles/kvm_provision
 __vm_domain: '{{ vm_domain | default("stoeps.home") }}'
+__vm_network: '{{ vm_network | default("default") }}'
 __base_image_name: '{{ base_image_name | default("Rocky-9-GenericCloud-Base.latest.x86_64.qcow2") }}'
 __base_image_url: '{{ base_image_url | default("https://download.rockylinux.org/pub/rocky/9/images/x86_64") }}'
 __libvirt_pool_dir: '{{ lib_virt_pool_dir | default("/var/lib/libvirt/images") }}'
-ssh_key: iac-ed25519.pub
+__ssh_key: '{{ ssh_key | default("iac-ed25519.pub") }}'
 __vm_root_password: '{{ vm_root_password | default("password") }}'
 __virtual_machines: '{{ virtual_machines }}'

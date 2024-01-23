@@ -31,16 +31,12 @@
     - '{{ __virtual_machines }}'
   register: copy_results
 
-- name: Define Libvirt image
-  community.libvirt.virt:
-    command: define
-
 - name: Configure the image
   command: |
     virt-customize -a {{ __libvirt_pool_dir }}/{{ item.name }}.qcow2 \
-    --hostname {{ item.name }}.{{ _vm_domain }} \
+    --hostname {{ item.name }}.{{ __vm_domain }} \
     --root-password password:{{ __vm_root_password }} \
-    --ssh-inject 'root:file:{{ ssh_key }}' \
+    --ssh-inject 'root:file:/var/home/stoeps/.ssh/{{ __ssh_key }}' \
     --uninstall cloud-init --selinux-relabel
   become: true
   with_items:
