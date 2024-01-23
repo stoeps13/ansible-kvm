@@ -1,13 +1,13 @@
 <!-- vim: set filetype=xml : -->
 <domain type='kvm'>
   <name>{{ item.name }}</name>
-  <memory unit='MiB'>{{ item.mem }}</memory>
+  <memory unit='GiB'>{{ item.mem }}</memory>
   <vcpu placement='static'>{{ item.cpu }}</vcpu>
   <os>
     <type arch='x86_64' machine='pc-q35-5.2'>hvm</type>
     <boot dev='hd'/>
   </os>
-  <cpu mode='host-model' check='none'/>
+  <cpu mode='host-passthrough' check='none' migratable='on' />
   <devices>
     <emulator>/usr/bin/qemu-system-x86_64</emulator>
     <disk type='file' device='disk'>

@@ -1,18 +1,17 @@
 vm_root_password: 'password'
+ssh_key: ansible_ed25519
 virtual_machines:
   - {
-      name: 'cnx-ds',
+      name: 'cnx-ds-test',
       cpu: '2',
       mem: '8',
       hdd1: '50',
-      hdd2: '100',
       ip: '10.0.22.3',
     }
   - {
-      name: 'cnx-ns',
+      name: 'cnx-ns-test',
       cpu: '2',
       mem: '8',
-      hdd1: '50',
-      hdd2: '100',
+      hdd1: '100',
       ip: '10.0.22.2',
     }

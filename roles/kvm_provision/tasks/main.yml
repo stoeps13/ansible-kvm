@@ -1,5 +1,11 @@
 ---
 # tasks file for roles/kvm_provision
+#
+- name: Check if network is configured and started
+  community.libvirt.virt_net:
+    state: active
+    name: '{{ __vm_network }}'
+
 - name: Get VMs list
   community.libvirt.virt:
     command: list_vms
@@ -37,6 +43,8 @@
     --hostname {{ item.name }}.{{ __vm_domain }} \
     --root-password password:{{ __vm_root_password }} \
     --ssh-inject 'root:file:/var/home/stoeps/.ssh/{{ __ssh_key }}' \
+    --install '{{ __default_packages }}' \
+    --password sysadmin:{{ __user_password }} --password ansible:{{ __user_password }} \
     --uninstall cloud-init --selinux-relabel
   become: true
   with_items:
@@ -51,3 +59,19 @@
   with_items:
     - '{{ __virtual_machines }}'
   when: 'item.name not in existing_vms.list_vms'
+
+- name: Get network mac address
+  ansible.builtin.shell: |
+    virsh dumpxml {{ item.name }} | grep 'mac address'
+  become: true
+  register: macaddress
+  with_items:
+    - '{{ __virtual_machines }}'
+
+- name: output macaddress
+  ansible.builtin.debug:
+    msg: '{{ macaddress }}'
+
+# - name: Update network config with static IP
+
+# - name: Restart vm if ip/mac changed
