@@ -1,6 +1,6 @@
 ---
 - name: Deploys VM based on cloud image
-  hosts: stoeps-t470
+  hosts: lnx-stwsh
 
   roles:
     - kvm_provision

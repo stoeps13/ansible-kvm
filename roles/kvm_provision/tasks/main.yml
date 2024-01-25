@@ -1,11 +1,6 @@
 ---
 # tasks file for roles/kvm_provision
 #
-- name: Check if network is configured and started
-  community.libvirt.virt_net:
-    state: active
-    name: '{{ __vm_network }}'
-
 - name: Get VMs list
   community.libvirt.virt:
     command: list_vms
@@ -14,64 +9,148 @@
 
 - name: Download image checksum
   ansible.builtin.get_url:
-    url: '{{ __base_image_url }}/{{ __base_image_name }}.CHECKSUM'
-    dest: '/tmp/{{ __base_image_name }}.CHECKSUM'
+    url: '{{ __base_image_url }}/{{ __base_image_checksum }}'
+    dest: '/tmp/{{ __base_image_checksum }}'
+
+- name: Get checksum
+  ansible.builtin.command:
+    cmd: "awk /{{ __base_image_name }}/'{print $1}' /tmp/{{ __base_image_checksum }}"
+  register: checksum
 
 - name: Download base image
   ansible.builtin.get_url:
     url: '{{ __base_image_url }}/{{ __base_image_name }}'
-    dest: '/tmp/{{ __base_image_name }}'
-    checksum: '{{ checksum }}'
-  vars:
-    checksum: "{{ 'sha256:' + lookup('file', '/tmp/{{ __base_image_name }}.CHECKSUM').split(\"\n\")[1].split(\"=\")[1] }}"
-
-- name: Copy base image to libvirt directory
-  copy:
-    dest: '{{ __libvirt_pool_dir }}/{{ item.name }}.qcow2'
-    src: '/tmp/{{ __base_image_name }}'
-    force: no
-    remote_src: yes
-    mode: 0660
+    dest: '{{ __libvirt_pool_dir }}/{{ __base_image_name }}'
+    checksum: 'sha256:{{ checksum.stdout_lines }}'
   become: true
-  with_items:
-    - '{{ __virtual_machines }}'
-  register: copy_results
+  register: download
 
-- name: Configure the image
-  command: |
-    virt-customize -a {{ __libvirt_pool_dir }}/{{ item.name }}.qcow2 \
-    --hostname {{ item.name }}.{{ __vm_domain }} \
-    --root-password password:{{ __vm_root_password }} \
-    --ssh-inject 'root:file:/var/home/stoeps/.ssh/{{ __ssh_key }}' \
-    --install '{{ __default_packages }}' \
-    --password sysadmin:{{ __user_password }} --password ansible:{{ __user_password }} \
-    --uninstall cloud-init --selinux-relabel
+- name: Check if virtual network is already configured
+  community.libvirt.virt_net:
+    command: list_nets
+  register: networks
   become: true
-  with_items:
-    - '{{ __virtual_machines }}'
-  when: copy_results is changed
 
-- name: Define vm
-  community.libvirt.virt:
-    command: define
-    xml: "{{ lookup('template', 'vm-template.xml.j2') }}"
+- name: Copy network template to /tmp
+  ansible.builtin.template:
+    src: bridge.xml.j2
+    dest: /tmp/bridge.xml
+    mode: 777
+  when:
+    __vm_network not in networks.list_nets
+
+- name: Define a new network
+  ansible.builtin.shell: |
+    virsh net-define /tmp/bridge.xml
+    virsh net-start {{ __vm_network }}
+    virsh net-autostart {{ __vm_network }}
+  become: true
+  when:
+    __vm_network not in networks.list_nets
+
+- name: Check if network is configured and started
+  community.libvirt.virt_net:
+    state: active
+    name: '{{ __vm_network }}'
+
+- name: Create snapshot of cloud image
+  ansible.builtin.shell: |
+    qemu-img create -f qcow2 -b {{ __libvirt_pool_dir }}/{{ __base_image_name }} -F qcow2 {{ __libvirt_pool_dir }}/{{ item.name }}.qcow2 {{ item.hdd1 }}G
   become: true
   with_items:
     - '{{ __virtual_machines }}'
   when: 'item.name not in existing_vms.list_vms'
 
-- name: Get network mac address
-  ansible.builtin.shell: |
-    virsh dumpxml {{ item.name }} | grep 'mac address'
-  become: true
-  register: macaddress
+- name: Create ISO source folder
+  ansible.builtin.file:
+    state: directory
+    path: '/tmp/{{ item.name }}'
   with_items:
     - '{{ __virtual_machines }}'
+  when: 'item.name not in existing_vms.list_vms'
 
-- name: output macaddress
-  ansible.builtin.debug:
-    msg: '{{ macaddress }}'
+- name: Copy Cloud Init user file
+  ansible.builtin.template:
+    src: cloud_init.cfg.j2
+    dest: "/tmp/{{ item.name }}/user-data"
+  with_items:
+    - '{{ __virtual_machines }}'
+  when: 'item.name not in existing_vms.list_vms'
 
+- name: Copy Cloud Init meta file
+  ansible.builtin.template:
+    src: meta.cfg.j2
+    dest: "/tmp/{{ item.name }}/meta-data"
+  with_items:
+    - '{{ __virtual_machines }}'
+  when: 'item.name not in existing_vms.list_vms'
+
+- name: Copy Cloud Init network file
+  ansible.builtin.template:
+    src: network.cfg.j2
+    dest: "/tmp/{{ item.name }}/network-config"
+  with_items:
+    - '{{ __virtual_machines }}'
+  when: 'item.name not in existing_vms.list_vms'
+
+- name: Create ISO from Cloud Init files
+  ansible.builtin.shell: |
+    xorriso -as genisoimage -output {{ __libvirt_pool_dir }}/{{ item.name }}-cloudinit.iso -volid cidata -joliet -rock /tmp/{{ item.name }}/user-data /tmp/{{ item.name }}/meta-data /tmp/{{ item.name }}/network-config
+  become: true
+  with_items:
+    - '{{ __virtual_machines }}'
+  when: 'item.name not in existing_vms.list_vms'
+
+- name: Create virtual machine
+  ansible.builtin.shell: |
+    virt-install --connect qemu:///system \
+      --name "{{ item.name }}" \
+      --memory "{{ item.mem * 1024 }}" \
+      --machine q35 \
+      --vcpus "{{ item.cpu }}" \
+      --cpu host-passthrough \
+      --network network="{{ __vm_network }}" \
+      --import \
+      --graphics spice \
+      --osinfo name=almalinux9 \
+      --disk "{{ __libvirt_pool_dir }}/{{ item.name }}.qcow2" \
+      --disk "{{ __libvirt_pool_dir }}/{{ item.name }}-cloudinit.iso",device=cdrom \
+      --virt-type kvm
+  become: true
+  with_items:
+    - '{{ __virtual_machines }}'
+  when: 'item.name not in existing_vms.list_vms'
+
+#
+# - name: Configure the image
+#   command: |
+#     virt-customize -a {{ __libvirt_pool_dir }}/{{ item.name }}.qcow2 \
+#     --hostname {{ item.name }}.{{ __vm_domain }} \
+#     --root-password password:{{ __vm_root_password }} \
+#     --ssh-inject 'root:file:/var/home/stoeps/.ssh/{{ __ssh_key }}' \
+#     --install '{{ __default_packages }}' \
+#     --password sysadmin:{{ __user_password }} --password ansible:{{ __user_password }} \
+#     --uninstall cloud-init --selinux-relabel
+#   become: true
+#   with_items:
+#     - '{{ __virtual_machines }}'
+#   when: copy_results is changed
+#
+# - name: Define vm
+#   community.libvirt.virt:
+#     command: define
+#     xml: "{{ lookup('template', 'vm-template.xml.j2') }}"
+#   become: true
+#   with_items:
+#     - '{{ __virtual_machines }}'
+#   when: 'item.name not in existing_vms.list_vms'
+#
+# - name: Start network
+#   community.libvirt.virt_net:
+#     name: '{{ __vm_network }}'
+#     command: start
+#   become: true
+#
 # - name: Update network config with static IP
 
 # - name: Restart vm if ip/mac changed

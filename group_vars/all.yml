@@ -2,16 +2,41 @@ vm_root_password: 'password'
 ssh_key: ansible_ed25519
 virtual_machines:
   - {
-      name: 'cnx-ds-test',
-      cpu: '2',
-      mem: '8',
-      hdd1: '50',
-      ip: '10.0.22.3',
+      name: 'cnx8-db2-was',
+      cpu: 6,
+      mem: 16,
+      hdd1: 100,
+      ip: '10.0.22.90',
     }
   - {
-      name: 'cnx-ns-test',
-      cpu: '2',
-      mem: '8',
-      hdd1: '100',
-      ip: '10.0.22.2',
+      name: 'cnx8-db2-db',
+      cpu: 4,
+      mem: 8,
+      hdd1: 100,
+      ip: '10.0.22.91',
     }
+  - {
+      name: 'cnx8-db2',
+      cpu: 2,
+      mem: 2,
+      hdd1: 40,
+      ip: '10.0.22.92',
+    }
+  - {
+      name: 'cnx8-db2-nfs',
+      cpu: 2,
+      mem: 2,
+      hdd1: 200,
+      ip: '10.0.22.93',
+    }
+  - {
+      name: 'cnx8-db2-cp',
+      cpu: 12,
+      mem: 28,
+      hdd1: 120,
+      ip: '10.0.22.95',
+    }
+base_image_name: AlmaLinux-9-GenericCloud-9.3-20231113.x86_64.qcow2
+base_image_checksum: CHECKSUM
+base_image_url: https://repo.almalinux.org/almalinux/9/cloud/x86_64/images/
+vm_network: 'vm_network'

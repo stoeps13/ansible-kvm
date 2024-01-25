@@ -1,0 +1,65 @@
+#cloud-config
+
+ssh_pwauth: true
+chpasswd:
+    expire: false
+
+hostname: {{ item.name }}
+fqdn: {{ item.name }}.{{ __vm_domain }}
+
+users:
+  - name: almalinux
+    shell: /usr/bin/bash
+    lock_passwd: false
+    hashed_passwd: {{ __root_password | password_hash }}
+    ssh_authorized_keys:
+      - {{ __root_ssh_key }}
+  - name: root
+    shell: /bin/bash
+    lock_passwd: false
+    hashed_passwd: {{ __root_password | password_hash }}
+    ssh_authorized_keys:
+      - {{ __root_ssh_key }}
+{% for user in __users %}
+  - name: {{ user }}
+    shell: {{ __users[user].shell }}
+    lock_passwd: false
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    hashed_passwd: {{ __users[user].password | password_hash }}
+    ssh_authorized_keys:
+      - {{ __users[user].ssh_key }}
+{% endfor %}
+
+runcmd:
+  - [ dnf, "config-manager", "--set-enabled", "powertools"]
+  - [ dnf, "install", "yum-utils"]
+  - [ dnf, "config-manager", "--set-enabled", "crb"]
+  - [ dnf, "install", "epel-release"]
+
+growpart:
+  mode: auto
+  devices: ['/']
+
+repo_update: true
+repo_upgrade: all
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - bash-completion
+  - vim-enhanced
+  - curl
+  - jq
+  - wget
+  - qemu-guest-agent
+  - dnsmasq
+  - python3
+
+power_state:
+  mode: poweroff
+  delay: now
+  condition: true
+
+final_message: "The system is finally up, after $UPTIME seconds"
+# vim: syntax=yaml

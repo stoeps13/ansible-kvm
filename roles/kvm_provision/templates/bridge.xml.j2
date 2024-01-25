@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<network>
+  <name>{{ __vm_network }}</name>
+  <forward mode="nat">
+    <nat>
+      <port start="1024" end="65535"/>
+    </nat>
+  </forward>
+  <bridge name="{{ __vm_net_bridge }}" stp="on" delay="0"/>
+  <domain name="{{ __vm_domain }}" localOnly="no" />
+  <dns>
+    <forwarder addr="8.8.8.8"/>
+  </dns>
+  <ip address="{{ __ip_net_base }}.1" netmask="255.255.255.0">
+    <dhcp>
+      <range start="{{ __ip_net_base }}.240" end="{{ __ip_net_base }}.250"/>
+    </dhcp>
+  </ip>
+</network>
+

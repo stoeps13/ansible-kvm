@@ -1,0 +1,10 @@
+version: 2
+ethernets:
+  eth0:
+    addresses:
+      - {{ item.ip }}
+    gateway4: {{ __ip_net_base }}.1
+    nameservers:
+      addresses:
+        - {{ __ip_net_base }}.1
+        - 9.9.9.9
