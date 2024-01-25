@@ -113,7 +113,7 @@
       --import \
       --graphics spice \
       --osinfo name=almalinux9 \
-      --disk "{{ __libvirt_pool_dir }}/{{ item.name }}.qcow2" \
+      --disk "{{ __libvirt_pool_dir }}/{{ item.name }}.qcow2",cache=unsafe \
       --disk "{{ __libvirt_pool_dir }}/{{ item.name }}-cloudinit.iso",device=cdrom \
       --virt-type kvm
   become: true

@@ -31,7 +31,6 @@ users:
 {% endfor %}
 
 runcmd:
-  - [ dnf, "config-manager", "--set-enabled", "powertools"]
   - [ dnf, "install", "yum-utils"]
   - [ dnf, "config-manager", "--set-enabled", "crb"]
   - [ dnf, "install", "epel-release"]
