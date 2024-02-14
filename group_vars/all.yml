@@ -1,5 +1,14 @@
 vm_root_password: 'password'
 ssh_key: ansible_ed25519
+base_image_url_7: https://cloud.centos.org/centos/7/images
+base_image_name_7: CentOS-7-x86_64-GenericCloud.qcow2
+base_image_url_8: https://repo.almalinux.org/almalinux/8/cloud/x86_64/images
+base_image_name_8: AlmaLinux-8-GenericCloud-8.9-20231128.x86_64.qcow2
+base_image_url_9: https://repo.almalinux.org/almalinux/9/cloud/x86_64/images
+base_image_name_9: AlmaLinux-9-GenericCloud-9.3-20231113.x86_64.qcow2
+base_image_7: "{{ base_image_url_7 }}/{{ base_image_name_7 }}"
+base_image_8: "{{ base_image_url_8 }}/{{ base_image_name_8 }}"
+base_image_9: "{{ base_image_url_9 }}/{{ base_image_name_9 }}"
 virtual_machines:
   - {
       name: 'cnx-ns',
@@ -7,6 +16,7 @@ virtual_machines:
       mem: 2,
       hdd1: 20,
       ip: '10.0.22.2',
+      base_image: "{{ base_image_name_9 }}"
     }
   - {
       name: 'cnx-ds',
@@ -14,6 +24,55 @@ virtual_machines:
       mem: 2,
       hdd1: 20,
       ip: '10.0.22.4',
+      base_image: "{{ base_image_name_9 }}"
+    }
+  - {
+      name: 'cnx-keycloak',
+      cpu: 2,
+      mem: 4,
+      hdd1: 20,
+      ip: '10.0.22.5',
+      base_image: "{{ base_image_name_9 }}"
+    }
+  - {
+      name: 'cnx8-ora-was',
+      cpu: 6,
+      mem: 16,
+      hdd1: 100,
+      ip: '10.0.22.80',
+      base_image: "{{ base_image_name_9 }}"
+    }
+  - {
+      name: 'cnx8-ora-db',
+      cpu: 4,
+      mem: 8,
+      hdd1: 100,
+      ip: '10.0.22.81',
+      base_image: "{{ base_image_name_9 }}"
+    }
+  - {
+      name: 'cnx8-ora',
+      cpu: 2,
+      mem: 2,
+      hdd1: 40,
+      ip: '10.0.22.82',
+      base_image: "{{ base_image_name_9 }}"
+    }
+  - {
+      name: 'cnx8-ora-nfs',
+      cpu: 2,
+      mem: 2,
+      hdd1: 200,
+      ip: '10.0.22.83',
+      base_image: "{{ base_image_name_9 }}"
+    }
+  - {
+      name: 'cnx8-ora-cp',
+      cpu: 12,
+      mem: 28,
+      hdd1: 120,
+      ip: '10.0.22.85',
+      base_image: "{{ base_image_name_9 }}"
     }
   - {
       name: 'cnx8-db2-was',
@@ -21,6 +80,7 @@ virtual_machines:
       mem: 16,
       hdd1: 100,
       ip: '10.0.22.90',
+      base_image: "{{ base_image_name_9 }}"
     }
   - {
       name: 'cnx8-db2-db',
@@ -28,6 +88,7 @@ virtual_machines:
       mem: 8,
       hdd1: 100,
       ip: '10.0.22.91',
+      base_image: "{{ base_image_name_9 }}"
     }
   - {
       name: 'cnx8-db2',
@@ -35,6 +96,7 @@ virtual_machines:
       mem: 2,
       hdd1: 40,
       ip: '10.0.22.92',
+      base_image: "{{ base_image_name_9 }}"
     }
   - {
       name: 'cnx8-db2-nfs',
@@ -42,6 +104,7 @@ virtual_machines:
       mem: 2,
       hdd1: 200,
       ip: '10.0.22.93',
+      base_image: "{{ base_image_name_9 }}"
     }
   - {
       name: 'cnx8-db2-cp',
@@ -49,8 +112,46 @@ virtual_machines:
       mem: 28,
       hdd1: 120,
       ip: '10.0.22.95',
+      base_image: "{{ base_image_name_9 }}"
     }
-base_image_name: AlmaLinux-9-GenericCloud-9.3-20231113.x86_64.qcow2
-base_image_checksum: CHECKSUM
-base_image_url: https://repo.almalinux.org/almalinux/9/cloud/x86_64/images/
+  - {
+      name: 'cnx7-db2-was',
+      cpu: 6,
+      mem: 16,
+      hdd1: 100,
+      ip: '10.0.22.100',
+      base_image: "{{ base_image_name_7 }}"
+    }
+  - {
+      name: 'cnx7-db2-db',
+      cpu: 4,
+      mem: 8,
+      hdd1: 100,
+      ip: '10.0.22.101',
+      base_image: "{{ base_image_name_7 }}"
+    }
+  - {
+      name: 'cnx7-db2',
+      cpu: 2,
+      mem: 2,
+      hdd1: 40,
+      ip: '10.0.22.102',
+      base_image: "{{ base_image_name_7 }}"
+    }
+  - {
+      name: 'cnx7-db2-nfs',
+      cpu: 2,
+      mem: 2,
+      hdd1: 200,
+      ip: '10.0.22.103',
+      base_image: "{{ base_image_name_7 }}"
+    }
+  - {
+      name: 'cnx7-db2-cp',
+      cpu: 12,
+      mem: 28,
+      hdd1: 120,
+      ip: '10.0.22.105',
+      base_image: "{{ base_image_name_7 }}"
+    }
 vm_network: 'vm_network'

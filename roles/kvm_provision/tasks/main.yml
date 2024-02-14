@@ -1,29 +1,24 @@
 ---
 # tasks file for roles/kvm_provision
-#
+#- name: Download files if not present
 - name: Get VMs list
   community.libvirt.virt:
     command: list_vms
   register: existing_vms
   changed_when: false
 
-- name: Download image checksum
-  ansible.builtin.get_url:
-    url: '{{ __base_image_url }}/{{ __base_image_checksum }}'
-    dest: '/tmp/{{ __base_image_checksum }}'
+- name: Check if files exist
+  stat:
+    path: "{{ __libvirt_pool_dir }}/{{ item.name }}"
+  register: file_status
+  with_items: "{{ __base_images }}"
 
-- name: Get checksum
-  ansible.builtin.command:
-    cmd: "awk /{{ __base_image_name }}/'{print $1}' /tmp/{{ __base_image_checksum }}"
-  register: checksum
-
-- name: Download base image
-  ansible.builtin.get_url:
-    url: '{{ __base_image_url }}/{{ __base_image_name }}'
-    dest: '{{ __libvirt_pool_dir }}/{{ __base_image_name }}'
-    checksum: 'sha256:{{ checksum.stdout_lines }}'
-  become: true
-  register: download
+- name: Download files if they do not exist
+  get_url:
+    url: "{{ item.url }}"
+    dest: "{{ __libvirt_pool_dir }}/{{ item.name }}"
+  when: not (file_status.results | selectattr('stat.exists', 'equalto', true) | list)
+  with_items: "{{ __base_images }}"
 
 - name: Check if virtual network is already configured
   community.libvirt.virt_net:

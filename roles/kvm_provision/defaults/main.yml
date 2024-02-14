@@ -1,8 +1,27 @@
 ---
 # defaults file for roles/kvm_provision
-__base_image_name: '{{ base_image_name | default("Rocky-9-GenericCloud-Base.latest.x86_64.qcow2") }}'
-__base_image_checksum: '{{ base_image_checksum }}'
-__base_image_url: '{{ base_image_url | default("https://download.rockylinux.org/pub/rocky/9/images/x86_64") }}'
+__base_image_url_7: '{{ base_image_url_7 | default("https://cloud.centos.org/centos/7/images") }}'
+__base_image_name_7: '{{ base_image_name_7 | default("CentOS-7-x86_64-GenericCloud.qcow2") }}'
+__base_image_url_8: '{{ base_image_url_8 | default("https://repo.almalinux.org/almalinux/8/cloud/x86_64/images") }}'
+__base_image_name_8: '{{ base_image_name_8 | default("AlmaLinux-8-GenericCloud-8.9-20231128.x86_64.qcow2") }}'
+__base_image_url_9: '{{ base_image_url_9 | default("https://repo.almalinux.org/almalinux/9/cloud/x86_64/images") }}'
+__base_image_name_9: '{{ base_image_name_9 | default("AlmaLinux-9-GenericCloud-9.3-20231113.x86_64.qcow2") }}'
+__base_image_7: "{{ __base_image_url_7 }}/{{ __base_image_name_7 }}"
+__base_image_8: "{{ __base_image_url_8 }}/{{ __base_image_name_8 }}"
+__base_image_9: "{{ __base_image_url_9 }}/{{ __base_image_name_9 }}"
+__base_images:
+  - {
+      name: "{{ __base_image_name_7 }}",
+      url: "{{ __base_image_url_7 }}"
+    }
+  - {
+      name: "{{ __base_image_name_8 }}",
+      url: "{{ __base_image_url_8 }}"
+    }
+  - {
+      name: "{{ __base_image_name_9 }}",
+      url: "{{ __base_image_url_9 }}"
+    }
 __default_packages: '{{ default_packages | default("bash-completion, vim-enhanced, curl, jq, wget, qemu-guest-agent, dnsmasq, python3") }}'
 __ip_net_base: '{{ ip_net_base | default("10.0.22") }}'
 __vm_net_bridge: '{{ vm_net_bridge | default("virbr1") }}'
