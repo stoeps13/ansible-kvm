@@ -50,7 +50,7 @@
 
 - name: Create snapshot of cloud image
   ansible.builtin.shell: |
-    qemu-img create -f qcow2 -b {{ __libvirt_pool_dir }}/{{ __base_image_name }} -F qcow2 {{ __libvirt_pool_dir }}/{{ item.name }}.qcow2 {{ item.hdd1 }}G
+    qemu-img create -f qcow2 -b {{ __libvirt_pool_dir }}/{{ item.base_image }} -F qcow2 {{ __libvirt_pool_dir }}/{{ item.name }}.qcow2 {{ item.hdd1 }}G
   become: true
   with_items:
     - '{{ __virtual_machines }}'

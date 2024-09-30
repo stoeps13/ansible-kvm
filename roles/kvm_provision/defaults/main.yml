@@ -6,9 +6,15 @@ __base_image_url_8: '{{ base_image_url_8 | default("https://repo.almalinux.org/a
 __base_image_name_8: '{{ base_image_name_8 | default("AlmaLinux-8-GenericCloud-8.9-20231128.x86_64.qcow2") }}'
 __base_image_url_9: '{{ base_image_url_9 | default("https://repo.almalinux.org/almalinux/9/cloud/x86_64/images") }}'
 __base_image_name_9: '{{ base_image_name_9 | default("AlmaLinux-9-GenericCloud-9.3-20231113.x86_64.qcow2") }}'
+__base_image_url_sles: '{{ base_image_url_sles | default("https://repo.almalinux.org/almalinux/sles/cloud/x86_64/images") }}'
+__base_image_name_sles: '{{ base_image_name_sles | default("AlmaLinux-sles-GenericCloud-sles.3-20231113.x86_64.qcow2") }}'
+__base_image_url_r9: '{{ base_image_url_r9 | default("https://dl.rockylinux.org/pub/rocky/9/images") }}'
+__base_image_name_r9: '{{ base_image_name_r9 | default("Rocky-9-GenericCloud.latest.x86_64.qcow2") }}'
 __base_image_7: "{{ __base_image_url_7 }}/{{ __base_image_name_7 }}"
 __base_image_8: "{{ __base_image_url_8 }}/{{ __base_image_name_8 }}"
 __base_image_9: "{{ __base_image_url_9 }}/{{ __base_image_name_9 }}"
+__base_image_sles: "{{ __base_image_url_sles }}/{{ __base_image_name_sles }}"
+__base_image_r9: "{{ __base_image_url_r9 }}/{{ __base_image_name_r9 }}"
 __base_images:
   - {
       name: "{{ __base_image_name_7 }}",
@@ -21,6 +27,14 @@ __base_images:
   - {
       name: "{{ __base_image_name_9 }}",
       url: "{{ __base_image_url_9 }}"
+    }
+  - {
+      name: "{{ __base_image_name_r9 }}",
+      url: "{{ __base_image_url_r9 }}"
+    }
+  - {
+      name: "{{ __base_image_name_sles }}",
+      url: "{{ __base_image_url_sles }}"
     }
 __default_packages: '{{ default_packages | default("bash-completion, vim-enhanced, curl, jq, wget, qemu-guest-agent, dnsmasq, python3") }}'
 __ip_net_base: '{{ ip_net_base | default("10.0.22") }}'
