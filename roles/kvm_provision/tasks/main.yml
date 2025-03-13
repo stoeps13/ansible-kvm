@@ -1,24 +1,32 @@
 ---
 # tasks file for roles/kvm_provision
-#- name: Download files if not present
 - name: Get VMs list
   community.libvirt.virt:
     command: list_vms
   register: existing_vms
+  become: true
   changed_when: false
 
 - name: Check if files exist
-  stat:
+  ansible.builtin.stat:
     path: "{{ __libvirt_pool_dir }}/{{ item.name }}"
   register: file_status
+  become: true
   with_items: "{{ __base_images }}"
 
+- name: Print file_status
+  ansible.builtin.debug:
+    msg: "{{ file_status }}"
+
 - name: Download files if they do not exist
-  get_url:
-    url: "{{ item.url }}"
-    dest: "{{ __libvirt_pool_dir }}/{{ item.name }}"
-  when: not (file_status.results | selectattr('stat.exists', 'equalto', true) | list)
-  with_items: "{{ __base_images }}"
+  ansible.builtin.get_url:
+    url: "{{ item.item.url }}/{{ item.item.name }}"
+    dest: "{{ __libvirt_pool_dir }}/{{ item.item.name }}"
+    mode: '644'
+  become: true
+  with_items: "{{ file_status.results }}"
+  when: not item.stat.exists
+
 
 - name: Check if virtual network is already configured
   community.libvirt.virt_net:
@@ -30,7 +38,7 @@
   ansible.builtin.template:
     src: bridge.xml.j2
     dest: /tmp/bridge.xml
-    mode: 777
+    mode: '777'
   when:
     __vm_network not in networks.list_nets
 
@@ -42,6 +50,7 @@
   become: true
   when:
     __vm_network not in networks.list_nets
+  changed_when: false
 
 - name: Check if network is configured and started
   community.libvirt.virt_net:
@@ -55,11 +64,13 @@
   with_items:
     - '{{ __virtual_machines }}'
   when: 'item.name not in existing_vms.list_vms'
+  changed_when: false
 
 - name: Create ISO source folder
   ansible.builtin.file:
     state: directory
     path: '/tmp/{{ item.name }}'
+    mode: '755'
   with_items:
     - '{{ __virtual_machines }}'
   when: 'item.name not in existing_vms.list_vms'
@@ -68,6 +79,7 @@
   ansible.builtin.template:
     src: cloud_init.cfg.j2
     dest: "/tmp/{{ item.name }}/user-data"
+    mode: '644'
   with_items:
     - '{{ __virtual_machines }}'
   when: 'item.name not in existing_vms.list_vms'
@@ -76,6 +88,7 @@
   ansible.builtin.template:
     src: meta.cfg.j2
     dest: "/tmp/{{ item.name }}/meta-data"
+    mode: '644'
   with_items:
     - '{{ __virtual_machines }}'
   when: 'item.name not in existing_vms.list_vms'
@@ -84,6 +97,7 @@
   ansible.builtin.template:
     src: network.cfg.j2
     dest: "/tmp/{{ item.name }}/network-config"
+    mode: '644'
   with_items:
     - '{{ __virtual_machines }}'
   when: 'item.name not in existing_vms.list_vms'
@@ -95,6 +109,7 @@
   with_items:
     - '{{ __virtual_machines }}'
   when: 'item.name not in existing_vms.list_vms'
+  changed_when: false
 
 - name: Create virtual machine
   ansible.builtin.shell: |
@@ -115,37 +130,17 @@
   with_items:
     - '{{ __virtual_machines }}'
   when: 'item.name not in existing_vms.list_vms'
+  changed_when: false
 
-#
-# - name: Configure the image
-#   command: |
-#     virt-customize -a {{ __libvirt_pool_dir }}/{{ item.name }}.qcow2 \
-#     --hostname {{ item.name }}.{{ __vm_domain }} \
-#     --root-password password:{{ __vm_root_password }} \
-#     --ssh-inject 'root:file:/var/home/stoeps/.ssh/{{ __ssh_key }}' \
-#     --install '{{ __default_packages }}' \
-#     --password sysadmin:{{ __user_password }} --password ansible:{{ __user_password }} \
-#     --uninstall cloud-init --selinux-relabel
-#   become: true
-#   with_items:
-#     - '{{ __virtual_machines }}'
-#   when: copy_results is changed
-#
-# - name: Define vm
-#   community.libvirt.virt:
-#     command: define
-#     xml: "{{ lookup('template', 'vm-template.xml.j2') }}"
-#   become: true
-#   with_items:
-#     - '{{ __virtual_machines }}'
-#   when: 'item.name not in existing_vms.list_vms'
-#
-# - name: Start network
-#   community.libvirt.virt_net:
-#     name: '{{ __vm_network }}'
-#     command: start
-#   become: true
-#
-# - name: Update network config with static IP
+- name: Print virtual_machines
+  ansible.builtin.debug:
+    msg: "{{ __virtual_machines }}"
 
-# - name: Restart vm if ip/mac changed
+- name: Add servers to /etc/hosts
+  ansible.builtin.lineinfile:
+    path: '/etc/hosts'
+    insertafter: 'EOF'
+    line: "{{ item.ip }} {{ item.name }}.stoeps.home {{ item.name }}"
+  become: true
+  with_items:
+    - '{{ __virtual_machines }}'

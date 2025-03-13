@@ -17,25 +17,25 @@ __base_image_sles: "{{ __base_image_url_sles }}/{{ __base_image_name_sles }}"
 __base_image_r9: "{{ __base_image_url_r9 }}/{{ __base_image_name_r9 }}"
 __base_images:
   - {
-      name: "{{ __base_image_name_7 }}",
-      url: "{{ __base_image_url_7 }}"
-    }
+    name: "{{ __base_image_name_7 }}",
+    url: "{{ __base_image_url_7 }}"
+  }
   - {
-      name: "{{ __base_image_name_8 }}",
-      url: "{{ __base_image_url_8 }}"
-    }
+    name: "{{ __base_image_name_8 }}",
+    url: "{{ __base_image_url_8 }}"
+  }
   - {
-      name: "{{ __base_image_name_9 }}",
-      url: "{{ __base_image_url_9 }}"
-    }
+    name: "{{ __base_image_name_9 }}",
+    url: "{{ __base_image_url_9 }}"
+  }
   - {
-      name: "{{ __base_image_name_r9 }}",
-      url: "{{ __base_image_url_r9 }}"
-    }
+    name: "{{ __base_image_name_r9 }}",
+    url: "{{ __base_image_url_r9 }}"
+  }
   - {
-      name: "{{ __base_image_name_sles }}",
-      url: "{{ __base_image_url_sles }}"
-    }
+    name: "{{ __base_image_name_sles }}",
+    url: "{{ __base_image_url_sles }}"
+  }
 __default_packages: '{{ default_packages | default("bash-completion, vim-enhanced, curl, jq, wget, qemu-guest-agent, dnsmasq, python3") }}'
 __ip_net_base: '{{ ip_net_base | default("10.0.22") }}'
 __vm_net_bridge: '{{ vm_net_bridge | default("virbr1") }}'
@@ -59,4 +59,3 @@ __users:
     ssh_key: "{{ lookup('ansible.builtin.file', 'ansible_ed25519.pub' )}}"
     shell: /usr/bin/bash
     groups: wheel
-
