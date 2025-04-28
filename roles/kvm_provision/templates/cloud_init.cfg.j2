@@ -35,8 +35,8 @@ runcmd:
   - [ dnf, "config-manager", "--set-enabled", "crb"]
   - [ dnf, "install", "epel-release"]
   - [ timedatectl, "set-timezone", "Europe/Amsterdam"]
-  - [ echo, "ptp_kvm", "> /etc/modules-load.d/ptp_kvm.conf"]
-  - [ echo, "refclock", "PHC", "/dev/ptp0", "poll", "2", ">> /etc/chrony.conf"]
+  - echo ptp_kvm > /etc/modules-load.d/ptp_kvm.conf
+  - echo "refclock PHC /dev/ptp0 poll 2" >> /etc/chrony.conf
 
 
 growpart:

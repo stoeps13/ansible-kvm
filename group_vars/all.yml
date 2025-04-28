@@ -204,12 +204,4 @@ virtual_machines:
     ip: '10.0.22.119',
     base_image: "{{ __base_image_name_r9 }}"
   }
-  - {
-    name: 'clt2',
-    cpu: 2,
-    mem: 2,
-    hdd1: 20,
-    ip: '10.0.22.120',
-    base_image: "{{ __base_image_name_r9 }}"
-  }
 vm_network: 'vm_network'
