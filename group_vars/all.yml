@@ -149,6 +149,14 @@ virtual_machines:
     base_image: "{{ __base_image_name_r9 }}"
   }
   - {
+    name: 'ansible-ihs',
+    cpu: 2,
+    mem: 2,
+    hdd1: 40,
+    ip: '10.0.22.111',
+    base_image: "{{ __base_image_name_r9 }}"
+  }
+  - {
     name: 'ansible-db',
     cpu: 4,
     mem: 8,
@@ -186,6 +194,22 @@ virtual_machines:
     mem: 28,
     hdd1: 120,
     ip: '10.0.22.118',
+    base_image: "{{ __base_image_name_r9 }}"
+  }
+  - {
+    name: 'clt1-rh',
+    cpu: 2,
+    mem: 2,
+    hdd1: 20,
+    ip: '10.0.22.119',
+    base_image: "{{ __base_image_name_r9 }}"
+  }
+  - {
+    name: 'clt2',
+    cpu: 2,
+    mem: 2,
+    hdd1: 20,
+    ip: '10.0.22.120',
     base_image: "{{ __base_image_name_r9 }}"
   }
 vm_network: 'vm_network'
